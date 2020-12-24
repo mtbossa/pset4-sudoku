@@ -7,7 +7,7 @@
  * Implements the game of Sudoku.
  ***************************************************************************/
 
-#include "sudoku.h"
+#include "includes/sudoku.h"
 
 #include <ctype.h>
 #include <ncurses.h>
@@ -27,8 +27,7 @@
 
 
 // wrapper for our game's globals
-struct
-{
+struct {
     // the current level
     char *level;
 
@@ -211,9 +210,7 @@ main(int argc, char *argv[])
  * Draw's the game's board.
  */
 
-void
-draw_grid(void)
-{
+void draw_grid(void) {
     // get window's dimensions
     int maxy, maxx;
     getmaxyx(stdscr, maxy, maxx);
@@ -223,12 +220,12 @@ draw_grid(void)
     g.left = maxx/2 - 30;
 
     // enable color if possible
-    if (has_colors())
+    if (has_colors()) {
         attron(COLOR_PAIR(PAIR_GRID));
+    }
 
     // print grid
-    for (int i = 0 ; i < 3 ; ++i )
-    {
+    for (int i = 0 ; i < 3 ; ++i) {
         mvaddstr(g.top + 0 + 4 * i, g.left, "+-------+-------+-------+");
         mvaddstr(g.top + 1 + 4 * i, g.left, "|       |       |       |");
         mvaddstr(g.top + 2 + 4 * i, g.left, "|       |       |       |");
@@ -242,8 +239,9 @@ draw_grid(void)
     mvaddstr(g.top + 14, g.left + 25 - strlen(reminder), reminder);
 
     // disable color if possible
-    if (has_colors())
+    if (has_colors()){
         attroff(COLOR_PAIR(PAIR_GRID));
+    }
 }
 
 
@@ -251,25 +249,20 @@ draw_grid(void)
  * Draws game's borders.
  */
 
-void
-draw_borders(void)
-{
+void draw_borders(void) {
     // get window's dimensions
     int maxy, maxx;
     getmaxyx(stdscr, maxy, maxx);
 
     // enable color if possible (else b&w highlighting)
-    if (has_colors())
-    {
+    if (has_colors()) {
         attron(A_PROTECT);
         attron(COLOR_PAIR(PAIR_BORDER));
-    }
-    else
+    } else {
         attron(A_REVERSE);
-
+    }
     // draw borders
-    for (int i = 0; i < maxx; i++)
-    {
+    for (int i = 0; i < maxx; i++) {
         mvaddch(0, i, ' ');
         mvaddch(maxy-1, i, ' ');
     }
@@ -284,10 +277,11 @@ draw_borders(void)
     mvaddstr(maxy-1, maxx-13, "[Q]uit Game");
 
     // disable color if possible (else b&w highlighting)
-    if (has_colors())
+    if (has_colors()){
         attroff(COLOR_PAIR(PAIR_BORDER));
-    else
+    } else {
         attroff(A_REVERSE);
+    }
 }
 
 
@@ -296,16 +290,15 @@ draw_borders(void)
  * called at least once.
  */
 
-void
-draw_logo(void)
-{
+void draw_logo(void) {
     // determine top-left coordinates of logo
     int top = g.top + 2;
     int left = g.left + 30;
 
     // enable color if possible
-    if (has_colors())
+    if (has_colors()) {
         attron(COLOR_PAIR(PAIR_LOGO));
+    }
 
     // draw logo
     mvaddstr(top + 0, left, "               _       _          ");
@@ -321,8 +314,9 @@ draw_logo(void)
     mvaddstr(top + 7, left + 35 - strlen(signature) - 1, signature);
 
     // disable color if possible
-    if (has_colors())
+    if (has_colors()) {
         attroff(COLOR_PAIR(PAIR_LOGO));
+    }
 }
 
 
@@ -331,14 +325,10 @@ draw_logo(void)
  * called at least once.
  */
 
-void
-draw_numbers(void)
-{
+void draw_numbers(void) {
     // iterate over board's numbers
-    for (int i = 0; i < 9; i++)
-    {
-        for (int j = 0; j < 9; j++)
-        {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
             // determine char
             char c = (g.board[i][j] == 0) ? '.' : g.board[i][j] + '0';
             mvaddch(g.top + i + 1 + i/3, g.left + 2 + 2*(j + j/3), c);
@@ -352,13 +342,11 @@ draw_numbers(void)
  * Designed to handles signals (e.g., SIGWINCH).
  */
 
-void
-handle_signal(int signum)
-{
+void handle_signal(int signum) {
     // handle a change in the window (i.e., a resizing)
-    if (signum == SIGWINCH)
+    if (signum == SIGWINCH) {
         redraw_all();
-
+    }
     // re-register myself so this signal gets handled in future too
     signal(signum, (void (*)(int)) handle_signal);
 }
@@ -368,16 +356,15 @@ handle_signal(int signum)
  * Hides banner.
  */
 
-void
-hide_banner(void)
-{
+void hide_banner(void) {
     // get window's dimensions
     int maxy, maxx;
     getmaxyx(stdscr, maxy, maxx);
 
     // overwrite banner with spaces
-    for (int i = 0; i < maxx; i++)
+    for (int i = 0; i < maxx; i++){
         mvaddch(g.top + 16, i, ' ');
+    }
 }
 
 
@@ -385,23 +372,20 @@ hide_banner(void)
  * Loads current board from disk, returning true iff successful.
  */
 
-bool
-load_board(void)
-{
+bool load_board(void) {
     // open file with boards of specified level
     char filename[strlen(g.level) + 5];
     sprintf(filename, "%s.bin", g.level);
     FILE *fp = fopen(filename, "rb");
-    if (fp == NULL)
+    if (fp == NULL) {
         return false;
-
+    }
     // determine file's size
     fseek(fp, 0, SEEK_END);
     int size = ftell(fp);
 
     // ensure file is of expected size
-    if (size % (81 * INTSIZE) != 0)
-    {
+    if (size % (81 * INTSIZE) != 0) {
         fclose(fp);
         return false;
     }
@@ -413,8 +397,7 @@ load_board(void)
     fseek(fp, offset, SEEK_SET);
 
     // read board into memory
-    if (fread(g.board, 81 * INTSIZE, 1, fp) != 1)
-    {
+    if (fread(g.board, 81 * INTSIZE, 1, fp) != 1) {
         fclose(fp);
         return false;
     }
@@ -429,22 +412,20 @@ load_board(void)
  * Logs input and board's state to log.txt to facilitate automated tests.
  */
 
-void
-log_move(int ch)
-{
+void log_move(int ch) {
     // open log
     FILE *fp = fopen("log.txt", "a");
-    if (fp == NULL)
+    if (fp == NULL) {
         return;
-
+    }
     // log input
     fprintf(fp, "%d\n", ch);
 
     // log board
-    for (int i = 0; i < 9; i++)
-    {
-        for (int j = 0; j < 9; j++)
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
             fprintf(fp, "%d", g.board[i][j]);
+        }
         fprintf(fp, "\n");
     }
 
@@ -457,9 +438,7 @@ log_move(int ch)
  * (Re)draws everything on the screen.
  */
 
-void
-redraw_all(void)
-{
+void redraw_all(void) {
     // reset ncurses
     endwin();
     refresh();
@@ -482,9 +461,7 @@ redraw_all(void)
  * (Re)starts current game, returning true iff succesful.
  */
 
-bool
-restart_game(void)
-{
+bool restart_game(void) {
     // reload current game
     if (!load_board())
         return false;
@@ -513,9 +490,7 @@ restart_game(void)
  * Shows cursor at (g.y, g.x).
  */
 
-void
-show_cursor(void)
-{
+void show_cursor(void) {
     // restore cursor's location
     move(g.top + g.y + 1 + g.y/3, g.left + 2 + 2*(g.x + g.x/3));
 }
@@ -526,19 +501,19 @@ show_cursor(void)
  * called at least once.
  */
 
-void
-show_banner(char *b)
-{
+void show_banner(char *b) {
     // enable color if possible
-    if (has_colors())
+    if (has_colors()) {
         attron(COLOR_PAIR(PAIR_BANNER));
+    }
 
     // determine where top-left corner of board belongs 
     mvaddstr(g.top + 16, g.left + 64 - strlen(b), b);
 
     // disable color if possible
-    if (has_colors())
+    if (has_colors()) {
         attroff(COLOR_PAIR(PAIR_BANNER));
+    }
 }
 
 
@@ -546,9 +521,7 @@ show_banner(char *b)
  * Shuts down ncurses.
  */
 
-void
-shutdown(void)
-{
+void shutdown(void) {
     endwin();
 }
 
@@ -557,19 +530,16 @@ shutdown(void)
  * Starts up ncurses.  Returns true iff successful.
  */
 
-bool
-startup(void)
-{
+bool startup(void) {
     // initialize ncurses
-    if (initscr() == NULL)
+    if (initscr() == NULL) {
         return false;
-
+    }
+    
     // prepare for color if possible
-    if (has_colors())
-    {
+    if (has_colors()) {
         // enable color
-        if (start_color() == ERR || attron(A_PROTECT) == ERR)
-        {
+        if (start_color() == ERR || attron(A_PROTECT) == ERR) {
             endwin();
             return false;
         }
@@ -578,30 +548,26 @@ startup(void)
         if (init_pair(PAIR_BANNER, FG_BANNER, BG_BANNER) == ERR ||
             init_pair(PAIR_GRID, FG_GRID, BG_GRID) == ERR ||
             init_pair(PAIR_BORDER, FG_BORDER, BG_BORDER) == ERR ||
-            init_pair(PAIR_LOGO, FG_LOGO, BG_LOGO) == ERR)
-        {
+            init_pair(PAIR_LOGO, FG_LOGO, BG_LOGO) == ERR) {
             endwin();
             return false;
         }
     }
 
     // don't echo keyboard input
-    if (noecho() == ERR)
-    {
+    if (noecho() == ERR) {
         endwin();
         return false;
     }
 
     // disable line buffering and certain signals
-    if (raw() == ERR)
-    {
+    if (raw() == ERR) {
         endwin();
         return false;
     }
 
     // enable arrow keys
-    if (keypad(stdscr, true) == ERR)
-    {
+    if (keypad(stdscr, true) == ERR) {
         endwin();
         return false;
     }
