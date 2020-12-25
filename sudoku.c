@@ -66,28 +66,24 @@ bool startup(void);
  * Main driver for the game.
  */
 
-int
-main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     // define usage
     const char *usage = "Usage: sudoku n00b|l33t [#]\n";
 
     // ensure that number of arguments is as expected
-    if (argc != 2 && argc != 3)
-    {
+    if (argc != 2 && argc != 3) {
         fprintf(stderr, usage);
         return 1;
     }
 
     // ensure that level is valid
-    if (strcmp(argv[1], "debug") == 0)
+    if (strcmp(argv[1], "debug") == 0) {
         g.level = "debug";
-    else if (strcmp(argv[1], "n00b") == 0)
+    } else if (strcmp(argv[1], "n00b") == 0) {
         g.level = "n00b";
-    else if (strcmp(argv[1], "l33t") == 0)
+    } else if (strcmp(argv[1], "l33t") == 0) {
         g.level = "l33t";
-    else
-    {
+    } else {
         fprintf(stderr, usage);
         return 2;
     }
@@ -96,28 +92,23 @@ main(int argc, char *argv[])
     int max = (strcmp(g.level, "debug") == 0) ? 9 : 1024;
 
     // ensure that #, if provided, is in [1, max]
-    if (argc == 3)
-    {
+    if (argc == 3) {
         // ensure n is integral
         char c;
-        if (sscanf(argv[2], " %d %c", &g.number, &c) != 1)
-        {
+        if (sscanf(argv[2], " %d %c", &g.number, &c) != 1) {
             fprintf(stderr, usage);
             return 3;
         }
 
         // ensure n is in [1, max]
-        if (g.number < 1 || g.number > max)
-        {
+        if (g.number < 1 || g.number > max) {
             fprintf(stderr, "That board # does not exist!\n");
             return 4;
         }
 
         // seed PRNG with # so that we get same sequence of boards
         srand(g.number);
-    }
-    else
-    {
+    } else {
         // seed PRNG with current time so that we get any sequence of boards
         srand(time(NULL));
 
@@ -126,8 +117,7 @@ main(int argc, char *argv[])
     }
 
     // start up ncurses
-    if (!startup())
-    {
+    if (!startup()) {
         fprintf(stderr, "Error starting up ncurses!\n");
         return 5;
     }
@@ -136,8 +126,7 @@ main(int argc, char *argv[])
     signal(SIGWINCH, (void (*)(int)) handle_signal);
 
     // start the first game
-    if (!restart_game())
-    {
+    if (!restart_game()) {
         shutdown();
         fprintf(stderr, "Could not load board from disk!\n");
         return 6;
@@ -146,8 +135,7 @@ main(int argc, char *argv[])
 
     // let the user play!
     int ch;
-    do
-    {
+    do {
         // refresh the screen
         refresh();
 
@@ -158,13 +146,11 @@ main(int argc, char *argv[])
         ch = toupper(ch);
 
         // process user's input
-        switch (ch)
-        {
+        switch (ch) {
             // start a new game
             case 'N': 
                 g.number = rand() % max + 1;
-                if (!restart_game())
-                {
+                if (!restart_game()) {
                     shutdown();
                     fprintf(stderr, "Could not load board from disk!\n");
                     return 6;
@@ -173,8 +159,7 @@ main(int argc, char *argv[])
 
             // restart current game
             case 'R': 
-                if (!restart_game())
-                {
+                if (!restart_game()) {
                     shutdown();
                     fprintf(stderr, "Could not load board from disk!\n");
                     return 6;
@@ -188,8 +173,9 @@ main(int argc, char *argv[])
         }
 
         // log input (and board's state) if any was received this iteration
-        if (ch != ERR)
+        if (ch != ERR) {
             log_move(ch);
+        }
     }
     while (ch != 'Q');
 
@@ -239,7 +225,7 @@ void draw_grid(void) {
     mvaddstr(g.top + 14, g.left + 25 - strlen(reminder), reminder);
 
     // disable color if possible
-    if (has_colors()){
+    if (has_colors()) {
         attroff(COLOR_PAIR(PAIR_GRID));
     }
 }
@@ -277,7 +263,7 @@ void draw_borders(void) {
     mvaddstr(maxy-1, maxx-13, "[Q]uit Game");
 
     // disable color if possible (else b&w highlighting)
-    if (has_colors()){
+    if (has_colors()) {
         attroff(COLOR_PAIR(PAIR_BORDER));
     } else {
         attroff(A_REVERSE);
@@ -362,7 +348,7 @@ void hide_banner(void) {
     getmaxyx(stdscr, maxy, maxx);
 
     // overwrite banner with spaces
-    for (int i = 0; i < maxx; i++){
+    for (int i = 0; i < maxx; i++) {
         mvaddch(g.top + 16, i, ' ');
     }
 }
@@ -463,9 +449,10 @@ void redraw_all(void) {
 
 bool restart_game(void) {
     // reload current game
-    if (!load_board())
+    if (!load_board()) {
         return false;
-
+    } 
+    
     // redraw board
     draw_grid();
     draw_numbers();
