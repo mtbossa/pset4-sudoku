@@ -8,10 +8,10 @@
  ***************************************************************************/
 
 // game's author
-#define AUTHOR "John Harvard"
+#define AUTHOR "Mateus Riberio Bossa"
 
 // game's title
-#define TITLE "Sudoku"
+#define TITLE "Sudoku CC50"
 
 // banner's colors
 #define FG_BANNER COLOR_CYAN
@@ -23,10 +23,10 @@
 
 // border's colors
 #define FG_BORDER COLOR_WHITE
-#define BG_BORDER COLOR_RED
+#define BG_BORDER COLOR_BLUE
 
 // logo's colors
-#define FG_LOGO COLOR_YELLOW
+#define FG_LOGO COLOR_GREEN
 #define BG_LOGO COLOR_BLACK
 
 // nicknames for pairs of colors

@@ -55,3 +55,4 @@ Makefile
 # Others
 .vscode/
 sudoku
+log.txt
