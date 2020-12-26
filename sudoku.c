@@ -89,6 +89,7 @@ int main(int argc, char *argv[]) {
     }
 
     // n00b and l33t levels have 1024 boards; debug level has 9
+    /* If Condition is true -> (strcmp(g.level, "debug") == 0) ? then value X (9) : otherwise value Y (1024) */
     int max = (strcmp(g.level, "debug") == 0) ? 9 : 1024;
 
     // ensure that #, if provided, is in [1, max]
@@ -106,6 +107,7 @@ int main(int argc, char *argv[]) {
             return 4;
         }
 
+        
         // seed PRNG with # so that we get same sequence of boards
         srand(g.number);
     } else {
