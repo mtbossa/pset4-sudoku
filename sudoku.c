@@ -61,6 +61,9 @@ void show_cursor(void);
 void shutdown(void);
 bool startup(void);
 
+// player move
+void player_move(int ch);
+
 
 /*
  * Main driver for the game.
@@ -171,8 +174,11 @@ int main(int argc, char *argv[]) {
             // let user manually redraw screen with ctrl-L
             case CTRL('l'):
                 redraw_all();
-                break;
-        }
+                break;                            
+        } 
+
+        // player_move
+        player_move(ch); 
 
         // log input (and board's state) if any was received this iteration
         if (ch != ERR) {
@@ -566,4 +572,61 @@ bool startup(void) {
 
     // w00t
     return true;
+}
+
+/*
+ * Player Move
+ */
+
+void player_move(int ch) {
+
+    switch (ch) {
+        case KEY_UP:
+            if(g.y == 0) {
+                g.y = 8;
+                show_cursor();
+                break;
+            } else {
+                g.y--;
+                show_cursor();
+                break;
+            }                         
+
+        case KEY_DOWN:
+            if(g.y == 8) {
+                g.y = 0;
+                show_cursor();
+                break;
+            } else {
+                g.y++;
+                show_cursor();
+                break; 
+            }                
+        
+        case KEY_RIGHT:
+            if(g.x == 8) {
+                g.x = 0;
+                show_cursor();
+                break;
+            } else {
+                g.x++;
+                show_cursor(); 
+                break; 
+            }          
+
+        case KEY_LEFT:
+            if(g.x == 0) {
+                g.x = 8;
+                show_cursor();
+                break;
+            } else {
+                g.x--;
+                show_cursor(); 
+                break;
+            }
+            
+        default:
+            break;
+    }
+
 }
