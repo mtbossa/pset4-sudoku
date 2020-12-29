@@ -63,7 +63,7 @@ bool startup(void);
 
 // player move
 void player_move(int ch);
-
+void player_choice(int ch);
 
 /*
  * Main driver for the game.
@@ -150,35 +150,54 @@ int main(int argc, char *argv[]) {
         // capitalize input to simplify cases
         ch = toupper(ch);
 
+        // if number is pressed
+        if(ch >= '1' && ch <= '9'){
+            player_choice(ch);
+        } else {
         // process user's input
-        switch (ch) {
-            // start a new game
-            case 'N': 
-                g.number = rand() % max + 1;
-                if (!restart_game()) {
-                    shutdown();
-                    fprintf(stderr, "Could not load board from disk!\n");
-                    return 6;
-                }
-                break;
+            switch (ch) {
+                // start a new game
+                case 'N': 
+                    g.number = rand() % max + 1;
+                    if (!restart_game()) {
+                        shutdown();
+                        fprintf(stderr, "Could not load board from disk!\n");
+                        return 6;
+                    }
+                    break;
 
-            // restart current game
-            case 'R': 
-                if (!restart_game()) {
-                    shutdown();
-                    fprintf(stderr, "Could not load board from disk!\n");
-                    return 6;
-                }
-                break;
+                // restart current game
+                case 'R': 
+                    if (!restart_game()) {
+                        shutdown();
+                        fprintf(stderr, "Could not load board from disk!\n");
+                        return 6;
+                    }
+                    break;
 
-            // let user manually redraw screen with ctrl-L
-            case CTRL('l'):
-                redraw_all();
-                break;                            
-        } 
+                // let user manually redraw screen with ctrl-L
+                case CTRL('l'):
+                    redraw_all();
+                    break;
 
-        // player_move
-        player_move(ch); 
+                // player movement
+                case KEY_UP:
+                    player_move(ch);
+                    break;
+
+                case KEY_DOWN:
+                    player_move(ch);
+                    break;
+
+                case KEY_RIGHT:
+                    player_move(ch);
+                    break;
+
+                case KEY_LEFT:
+                    player_move(ch);
+                    break;                                                                    
+            }            
+        }
 
         // log input (and board's state) if any was received this iteration
         if (ch != ERR) {
@@ -575,7 +594,7 @@ bool startup(void) {
 }
 
 /*
- * Player Move
+ * Player move - arrows
  */
 
 void player_move(int ch) {
@@ -628,5 +647,20 @@ void player_move(int ch) {
         default:
             break;
     }
+
+}
+
+/*
+ * Player choice
+ */
+
+void player_choice(int ch) {
+
+    // posicao atual do cursor é o g.x e g.y com base no show_cursor() e é o mesmo que g.board[0][0]
+    if(g.board[g.y][g.x] == 0) {
+        g.board[g.y][g.x] = ch;
+        addch(ch);        
+        show_cursor();
+    } // TODO MENSAGEM ERRO SE O NUMERA JA ESTAVA NO BOARD E PERMITIR MUDAR NUMEROS QUE FORAM COLOCADOS PELO USUARIO
 
 }
