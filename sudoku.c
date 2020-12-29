@@ -29,11 +29,14 @@
 // wrapper for our game's globals
 struct {
     // the current level
-    char *level;
-
+    char *level;   
+        
     // the game's board
     int board[9][9];
 
+    // copy of the game's board
+    int copy_board[9][9];
+   
     // the board's number
     int number;
 
@@ -138,6 +141,14 @@ int main(int argc, char *argv[]) {
     }
     redraw_all();
 
+    // creates copy of the game board for checking empety spots for later verification
+    for(int i = 0; i < 9; i++) {
+       for(int j = 0; j < 9; j++) {
+           g.copy_board[i][j] = g.board[i][j];
+        }
+    }
+    
+    
     // let the user play!
     int ch;
     do {
@@ -150,8 +161,8 @@ int main(int argc, char *argv[]) {
         // capitalize input to simplify cases
         ch = toupper(ch);
 
-        // if number is pressed
-        if(ch >= '1' && ch <= '9'){
+        // if number or dot is pressed
+        if((ch >= '1' && ch <= '9') || ch == '.'){
             player_choice(ch);
         } else {
         // process user's input
@@ -651,16 +662,16 @@ void player_move(int ch) {
 }
 
 /*
- * Player choice
+ * Player choice - enters here just if '1' to '9' or '.' is pressed, than adds the character
  */
 
 void player_choice(int ch) {
 
     // posicao atual do cursor é o g.x e g.y com base no show_cursor() e é o mesmo que g.board[0][0]
-    if(g.board[g.y][g.x] == 0) {
+    if(g.copy_board[g.y][g.x] == 0) {
         g.board[g.y][g.x] = ch;
         addch(ch);        
         show_cursor();
-    } // TODO MENSAGEM ERRO SE O NUMERA JA ESTAVA NO BOARD E PERMITIR MUDAR NUMEROS QUE FORAM COLOCADOS PELO USUARIO
+    }
 
 }
