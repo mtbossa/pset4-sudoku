@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
         ch = toupper(ch);
 
         // if number or dot is pressed
-        if((ch >= '1' && ch <= '9') || ch == '.'){
+        if(ch >= '0' && ch <= '9'){
             player_choice(ch);
         } else {
         // process user's input
@@ -662,16 +662,22 @@ void player_move(int ch) {
 }
 
 /*
- * Player choice - enters here just if '1' to '9' or '.' is pressed, than adds the character
+ * Player choice - enters here just if '1' to '9' or '.' is pressed, than adds the character to the cursor position
  */
 
 void player_choice(int ch) {
-
+    
     // posicao atual do cursor é o g.x e g.y com base no show_cursor() e é o mesmo que g.board[0][0]
-    if(g.copy_board[g.y][g.x] == 0) {
-        g.board[g.y][g.x] = ch;
+    // checks the space at g.copy_board, because it doesn't get changed, than makes the change to g.board
+    if(g.copy_board[g.y][g.x] == 0 && ch == '0') {
+        char dot = '.';
+        addch(dot);
+        show_cursor(); // so the cursor go back to it's initial selected position
+        g.board[g.y][g.x] = ch - '0';  
+    } else if(g.copy_board[g.y][g.x] == 0) {        
         addch(ch);        
-        show_cursor();
-    }
+        show_cursor(); 
+        g.board[g.y][g.x] = ch - '0';
+    } 
 
 }
