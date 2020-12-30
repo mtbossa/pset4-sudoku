@@ -29,10 +29,13 @@
 // wrapper for our game's globals
 struct {
     // the current level
-    char *level;   
-        
+    char *level;           
+     
     // the game's board
     int board[9][9];
+
+    // solved board
+    int solved_board[9][9];
 
     // copy of the game's board
     int copy_board[9][9];
@@ -64,9 +67,15 @@ void show_cursor(void);
 void shutdown(void);
 bool startup(void);
 
-// player move
 void player_move(int ch);
 void player_choice(int ch);
+int solveSudoku(int x, int y);
+int sameColumn(int x, int y, int num);
+int sameSquare(int x, int y, int num);
+int sameRow(int x, int y, int num);
+int winCheck(void);
+
+void congratulations(void);
 
 /*
  * Main driver for the game.
@@ -141,18 +150,29 @@ int main(int argc, char *argv[]) {
     }
     redraw_all();
 
+    // creates copy of the game board for solving the puzzle
+    for(int i = 0; i < 9; i++) {
+       for(int j = 0; j < 9; j++) {
+           g.solved_board[i][j] = g.board[i][j];
+        }
+    }
+
+    // solves this board and place it to g.solved_board
+    int x = 0;
+    int y = 0;
+    solveSudoku(x, y);
+
     // creates copy of the game board for checking empety spots for later verification
     for(int i = 0; i < 9; i++) {
        for(int j = 0; j < 9; j++) {
            g.copy_board[i][j] = g.board[i][j];
         }
-    }
-    
+    }    
     
     // let the user play!
     int ch;
     do {
-        // refresh the screen
+        // refresh the screen       
         refresh();
 
         // get user's input
@@ -208,7 +228,15 @@ int main(int argc, char *argv[]) {
                     player_move(ch);
                     break;                                                                    
             }            
-        }
+        } 
+
+                
+        // checks current states of board and compares with solved board
+        if(!winCheck()) {
+            congratulations();
+            g.y = g.x = 4;
+            show_cursor();                               
+        }       
 
         // log input (and board's state) if any was received this iteration
         if (ch != ERR) {
@@ -672,12 +700,166 @@ void player_choice(int ch) {
     if(g.copy_board[g.y][g.x] == 0 && ch == '0') {
         char dot = '.';
         addch(dot);
-        show_cursor(); // so the cursor go back to it's initial selected position
+        show_cursor(); // so the cursor goes back to it's initial selected position after pressing the number
         g.board[g.y][g.x] = ch - '0';  
     } else if(g.copy_board[g.y][g.x] == 0) {        
         addch(ch);        
         show_cursor(); 
         g.board[g.y][g.x] = ch - '0';
     } 
+
+}
+
+/*
+ * Algorithm to solve the board
+ */
+
+int solveSudoku(int x, int y) {
+
+    int num = 1;
+    int tx = 0;
+    int ty = 0;
+
+    if(g.solved_board[x][y] != 0) {
+
+        if (x == 8 && y == 8) {
+            return 1;
+        }
+
+        if(x < 8) {
+            x++;
+        } else {
+            x = 0;
+            y++;
+        }
+        if(solveSudoku(x, y)) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    if(g.solved_board[x][y] == 0) {
+        while(num < 10) {
+            if(!sameSquare(x, y, num) && !sameRow(x, y, num) && !sameSquare(x, y, num)) {            
+                g.solved_board[x][y] = num;
+                if (x == 8 && y == 8) {
+                    return 1;
+                }
+
+                if(x < 8) {
+                    tx = x + 1;
+                } else {
+                    if (y < 8) {
+                        tx = 0;
+                        ty = y + 1;
+                    }
+                }
+
+                if(solveSudoku(tx, ty)) {
+                    return 1;
+                }                
+            }    
+            num++;
+        }
+        g.solved_board[x][y] = 0;
+        return 0;    
+    }
+    return 0;
+}
+
+/*
+ * Will return 1 (true) if the number we're passing already exists in the same column
+ */
+
+int sameColumn(int x, int y, int num) {
+
+    for(int i = 0; i < 9; i++) {
+        if(g.solved_board[x][y] == num) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/*
+ * Will return 1 (true) if the number we're passing already exists in the same row
+ */
+
+int sameRow(int x, int y, int num) {
+
+    for(int i = 0; i < 9; i++) {
+        if(g.solved_board[i][y] == num) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/*
+ * Will return 1 (true) if the number we're passing already exists in the same square
+ */
+
+int sameSquare(int x, int y, int num) {
+
+    if(x < 3) {
+        x = 0;
+    } else if(x < 6) {
+        x = 3;
+    } else {
+        x = 6;
+    }
+
+    if(y < 3) {
+        y = 0;
+    } else if(y < 6) {
+        y = 3;
+    } else {
+        y = 6;
+    }
+
+    for(int i = x; i < x + 3; i++) {
+        for(int j = y; j < y + 3; j++) {
+            if(g.solved_board[i][j] == num) {
+                return 1;
+            }
+        }        
+    }
+    return 0;
+}
+
+/*
+ * Checks current g.board with g.solved_board and return 1 if solved and 0 if not
+ */
+
+int winCheck(void) {
+
+    for(int i = 0; i < 9; i++) {
+        for(int j = 0; j < 9; j++) {
+            if(g.board[i][j] != g.solved_board[i][j]){
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+/*
+ * Congratulations message if win
+ */
+
+void congratulations(void) {
+
+    int height = 4;
+    int width = 31;
+    int start_y = 2;
+    int start_x = 50;    
+    WINDOW * winWindow = newwin(height, width, start_y, start_x);
+    refresh();
+
+    box(winWindow, 0, 0);    
+    mvwprintw(winWindow, 1, 3, "CONGRATULATIONS, YOU WON!");
+    mvwprintw(winWindow, 2, 5, "Press 'N', 'R' or 'Q'");
+    wrefresh(winWindow);
 
 }
