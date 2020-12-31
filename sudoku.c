@@ -69,13 +69,14 @@ bool startup(void);
 
 void player_move(int ch);
 void player_choice(int ch);
+
 int solveSudoku(int x, int y);
 int sameColumn(int x, int y, int num);
 int sameSquare(int x, int y, int num);
 int sameRow(int x, int y, int num);
-int winCheck(void);
 
-void congratulations(void);
+int winCheck(void);
+void congratulations(WINDOW *win);
 
 /*
  * Main driver for the game.
@@ -150,24 +151,13 @@ int main(int argc, char *argv[]) {
     }
     redraw_all();
 
-    // creates copy of the game board for solving the puzzle
-    for(int i = 0; i < 9; i++) {
-       for(int j = 0; j < 9; j++) {
-           g.solved_board[i][j] = g.board[i][j];
-        }
-    }
-
-    // solves this board and place it to g.solved_board
-    int x = 0;
-    int y = 0;
-    solveSudoku(x, y);
-
-    // creates copy of the game board for checking empety spots for later verification
-    for(int i = 0; i < 9; i++) {
-       for(int j = 0; j < 9; j++) {
-           g.copy_board[i][j] = g.board[i][j];
-        }
-    }    
+    
+    // winning
+    int height = 4;
+    int width = 31;
+    int start_y = 2;
+    int start_x = 50;    
+    WINDOW * winWindow = newwin(height, width, start_y, start_x);
     
     // let the user play!
     int ch;
@@ -175,69 +165,69 @@ int main(int argc, char *argv[]) {
         // refresh the screen       
         refresh();
 
+        if(!winCheck()) {    // checks current states of board and compares with solved board            
+            congratulations(winWindow);                                  
+        }       
+
         // get user's input
         ch = getch();
+
+        werase(winWindow);
+        wrefresh(winWindow);
+        curs_set(2);
 
         // capitalize input to simplify cases
         ch = toupper(ch);
 
         // if number or dot is pressed
         if(ch >= '0' && ch <= '9'){
-            player_choice(ch);
-        } else {
-        // process user's input
-            switch (ch) {
-                // start a new game
-                case 'N': 
-                    g.number = rand() % max + 1;
-                    if (!restart_game()) {
-                        shutdown();
-                        fprintf(stderr, "Could not load board from disk!\n");
-                        return 6;
-                    }
-                    break;
-
-                // restart current game
-                case 'R': 
-                    if (!restart_game()) {
-                        shutdown();
-                        fprintf(stderr, "Could not load board from disk!\n");
-                        return 6;
-                    }
-                    break;
-
-                // let user manually redraw screen with ctrl-L
-                case CTRL('l'):
-                    redraw_all();
-                    break;
-
-                // player movement
-                case KEY_UP:
-                    player_move(ch);
-                    break;
-
-                case KEY_DOWN:
-                    player_move(ch);
-                    break;
-
-                case KEY_RIGHT:
-                    player_move(ch);
-                    break;
-
-                case KEY_LEFT:
-                    player_move(ch);
-                    break;                                                                    
-            }            
-        } 
-
-                
-        // checks current states of board and compares with solved board
-        if(!winCheck()) {
-            congratulations();
-            g.y = g.x = 4;
-            show_cursor();                               
+            player_choice(ch);            
         }       
+        
+        // process user's input
+        switch (ch) {
+            // start a new game
+            case 'N': 
+                g.number = rand() % max + 1;
+                if (!restart_game()) {
+                    shutdown();
+                    fprintf(stderr, "Could not load board from disk!\n");
+                    return 6;
+                }
+                break;
 
+            // restart current game
+            case 'R': 
+                if (!restart_game()) {
+                    shutdown();
+                    fprintf(stderr, "Could not load board from disk!\n");
+                    return 6;
+                }
+                break;
+
+            // let user manually redraw screen with ctrl-L
+            case CTRL('l'):
+                redraw_all();
+                break;
+
+            // player movement
+            case KEY_UP:
+                player_move(ch);
+                break;
+
+            case KEY_DOWN:
+                player_move(ch);
+                break;
+
+            case KEY_RIGHT:
+                player_move(ch);
+                break;
+
+            case KEY_LEFT:
+                player_move(ch);
+                break;                                                                    
+        }            
+         
         // log input (and board's state) if any was received this iteration
         if (ch != ERR) {
             log_move(ch);
@@ -526,6 +516,26 @@ bool restart_game(void) {
     // get window's dimensions
     int maxy, maxx;
     getmaxyx(stdscr, maxy, maxx);
+
+
+    // creates copy of the game board for solving the puzzle
+    for(int i = 0; i < 9; i++) {
+       for(int j = 0; j < 9; j++) {
+           g.solved_board[i][j] = g.board[i][j];
+        }
+    }
+
+    // solves this level board and place it intoto g.solved_board
+    int x = 0;
+    int y = 0;
+    solveSudoku(x, y);
+
+    // creates copy of the game level board for checking empty spots in later verification
+    for(int i = 0; i < 9; i++) {
+       for(int j = 0; j < 9; j++) {
+           g.copy_board[i][j] = g.board[i][j];
+        }
+    }    
 
     // move cursor to board's center
     g.y = g.x = 4;
@@ -848,18 +858,18 @@ int winCheck(void) {
  * Congratulations message if win
  */
 
-void congratulations(void) {
+void congratulations(WINDOW *winWindow) {
 
-    int height = 4;
-    int width = 31;
-    int start_y = 2;
-    int start_x = 50;    
-    WINDOW * winWindow = newwin(height, width, start_y, start_x);
     refresh();
 
-    box(winWindow, 0, 0);    
-    mvwprintw(winWindow, 1, 3, "CONGRATULATIONS, YOU WON!");
+    box(winWindow, 0, 0);   
+
+    mvwprintw(winWindow, 1, 3, "CONGRATULATIONS, YOU WON!");  
     mvwprintw(winWindow, 2, 5, "Press 'N', 'R' or 'Q'");
     wrefresh(winWindow);
+
+    show_cursor();
+    g.y = g.x = 4; 
+    curs_set(0);
 
 }
