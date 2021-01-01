@@ -68,13 +68,16 @@ void shutdown(void);
 bool startup(void);
 
 void player_move(int ch);
-void player_choice(int ch);
+void player_choice(int ch, WINDOW *win);
 
 int solveSudoku(int x, int y);
 int sameColumn(int x, int y, int num);
 int sameSquare(int x, int y, int num);
 int sameRow(int x, int y, int num);
 
+int mySameColumn(int x, int y, int num);
+int mySameSquare(int x, int y, int num);
+int mySameRow(int x, int y, int num);
 
 int winCheck(void);
 void congratulations(WINDOW *win);
@@ -151,6 +154,14 @@ int main(int argc, char *argv[]) {
         return 6;
     }
     redraw_all();
+
+    
+    // error window
+    int heightErr = 3;
+    int widthErr = 29;
+    int start_yErr = 2;
+    int start_xErr = 50;    
+    WINDOW * winErr = newwin(heightErr, widthErr, start_yErr, start_xErr);
     
     // winning window
     int height = 4;
@@ -175,10 +186,9 @@ int main(int argc, char *argv[]) {
              
 
         // if number or dot is pressed
-        if(ch >= '0' && ch <= '9') {            
-            player_choice(ch);   
-        }              
-    
+        if(ch >= '0' && ch <= '9') {         
+            player_choice(ch, winErr);
+        } 
 
         refresh();
         
@@ -187,10 +197,12 @@ int main(int argc, char *argv[]) {
             if (has_colors()) {
                 init_pair(1, COLOR_GREEN, COLOR_BLACK);                
                 attron(COLOR_PAIR(1));
+                attron(A_BLINK);
             }
             draw_numbers();
             if (has_colors()) {                               
                 attroff(COLOR_PAIR(1));
+                attroff(A_BLINK);
             }
             int cont = 0;
             do {                
@@ -559,12 +571,12 @@ bool restart_game(void) {
         }
     }
 
-    // solves this level board and place it intoto g.solved_board
+    // solves this level board and place it into g.solved_board
     int x = 0;
     int y = 0;
     solveSudoku(x, y);
 
-    // creates copy of the game level board for checking empty spots in later verification
+    // creates copy of the game level board that won't be changed, for later verification 
     for(int i = 0; i < 9; i++) {
        for(int j = 0; j < 9; j++) {
            g.copy_board[i][j] = g.board[i][j];
@@ -737,21 +749,43 @@ void player_move(int ch) {
  * Player choice - enters here just if '1' to '9' or '.' is pressed, than adds the character to the cursor position
  */
 
-void player_choice(int ch) {
-    
-    // posicao atual do cursor é o g.x e g.y com base no show_cursor() e é o mesmo que g.board[0][0]
-    // checks the space at g.copy_board, because it doesn't get changed, than makes the change to g.board
+void player_choice(int ch, WINDOW *win) {
     int value = ch - '0';
+
     if(g.copy_board[g.y][g.x] == 0 && ch == '0') {
         char dot = '.';
         addch(dot);
         show_cursor(); // so the cursor goes back to it's initial selected position after pressing the number
-        g.board[g.y][g.x] = ch - '0';  
+        g.board[g.y][g.x] = 0;
+        werase(win);
+        wrefresh(win);
+
+    } else if((mySameColumn(g.y, g.x, value) || mySameRow(g.y, g.x, value) || mySameSquare(g.y, g.x, value)) && g.copy_board[g.y][g.x] == 0) {
+        
+        addch(ch);        
+        show_cursor();
+        g.board[g.y][g.x] = value;
+        
+        box(win, 0, 0);
+        if (has_colors()) {
+            init_pair(1, COLOR_RED, COLOR_BLACK);                
+            wattron(win, COLOR_PAIR(1));
+        }    
+        mvwprintw(win, 1, 4, "NUMBER CAN'T BE THERE"); 
+        if (has_colors()) {                       
+            wattroff(win, COLOR_PAIR(1));
+            wrefresh(win);
+        }           
     } else if(g.copy_board[g.y][g.x] == 0) {        
         addch(ch);        
         show_cursor(); 
         g.board[g.y][g.x] = value;
-    }       
+        werase(win);
+        wrefresh(win);
+    } 
+    
+      
+           
 
 }
 
@@ -913,3 +947,65 @@ void congratulations(WINDOW *winWindow) {
 
 }
 
+/*
+ * Will return 1 (true) if the number we're passing already exists in the same column
+ */
+
+int mySameColumn(int x, int y, int num) {
+
+    for(int i = 0; i < 9; i++) {
+        if(g.board[x][i] == num) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/*
+ * Will return 1 (true) if the number we're passing already exists in the same row
+ */
+
+int mySameRow(int x, int y, int num) {
+
+    for(int i = 0; i < 9; i++) {
+        if(g.board[i][y] == num) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/*
+ * Will return 1 (true) if the number we're passing already exists in the same square
+ */
+
+int mySameSquare(int x, int y, int num) {
+
+    if(x < 3) {
+        x = 0;
+    } else if(x < 6) {
+        x = 3;
+    } else {
+        x = 6;
+    }
+
+    if(y < 3) {
+        y = 0;
+    } else if(y < 6) {
+        y = 3;
+    } else {
+        y = 6;
+    }
+
+    for(int i = x; i < x + 3; i++) {
+        for(int j = y; j < y + 3; j++) {
+            if(g.board[i][j] == num) {
+                return 1;
+            }
+        }        
+    }
+
+    return 0;
+}
