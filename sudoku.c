@@ -867,9 +867,7 @@ void congratulations(WINDOW *winWindow) {
     mvwprintw(winWindow, 1, 3, "CONGRATULATIONS, YOU WON!");  
     mvwprintw(winWindow, 2, 5, "Press 'N', 'R' or 'Q'");
     wrefresh(winWindow);
-
-    show_cursor();
-    g.y = g.x = 4; 
+   
     curs_set(0);
 
 }
