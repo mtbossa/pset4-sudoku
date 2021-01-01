@@ -26,7 +26,7 @@
 #define BG_BORDER COLOR_BLUE
 
 // logo's colors
-#define FG_LOGO COLOR_GREEN
+#define FG_LOGO COLOR_YELLOW
 #define BG_LOGO COLOR_BLACK
 
 // nicknames for pairs of colors

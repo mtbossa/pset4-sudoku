@@ -75,6 +75,7 @@ int sameColumn(int x, int y, int num);
 int sameSquare(int x, int y, int num);
 int sameRow(int x, int y, int num);
 
+
 int winCheck(void);
 void congratulations(WINDOW *win);
 
@@ -150,9 +151,8 @@ int main(int argc, char *argv[]) {
         return 6;
     }
     redraw_all();
-
     
-    // winning
+    // winning window
     int height = 4;
     int width = 31;
     int start_y = 2;
@@ -163,26 +163,60 @@ int main(int argc, char *argv[]) {
     int ch;
     do {
         // refresh the screen       
-        refresh();
-
-        if(!winCheck()) {    // checks current states of board and compares with solved board            
-            congratulations(winWindow);                                  
-        }       
+        refresh();      
 
         // get user's input
-        ch = getch();
-
-        werase(winWindow);
-        wrefresh(winWindow);
-        curs_set(2);
+        ch = getch(); 
 
         // capitalize input to simplify cases
         ch = toupper(ch);
 
+        // always erases congratulations window if it exists after getting the char
+             
+
         // if number or dot is pressed
-        if(ch >= '0' && ch <= '9'){
-            player_choice(ch);            
-        }       
+        if(ch >= '0' && ch <= '9') {            
+            player_choice(ch);   
+        }              
+    
+
+        refresh();
+        
+        if(!winCheck()) {    // checks current states of board and compares with solved board            
+            congratulations(winWindow);
+            if (has_colors()) {
+                init_pair(1, COLOR_GREEN, COLOR_BLACK);                
+                attron(COLOR_PAIR(1));
+            }
+            draw_numbers();
+            if (has_colors()) {                               
+                attroff(COLOR_PAIR(1));
+            }
+            int cont = 0;
+            do {                
+                ch = getch();
+                ch = toupper(ch);
+                switch (ch) {
+                case 'N':
+                    cont = 1;
+                    break;
+                
+                case 'R':
+                    cont = 1;
+                    break;
+
+                case 'Q':
+                    cont = 1;
+                    break;    
+                
+                default:
+                    break;
+                }
+            } while (cont != 1);
+            werase(winWindow);
+            wrefresh(winWindow);
+            curs_set(2);            
+        }        
         
         // process user's input
         switch (ch) {
@@ -707,6 +741,7 @@ void player_choice(int ch) {
     
     // posicao atual do cursor é o g.x e g.y com base no show_cursor() e é o mesmo que g.board[0][0]
     // checks the space at g.copy_board, because it doesn't get changed, than makes the change to g.board
+    int value = ch - '0';
     if(g.copy_board[g.y][g.x] == 0 && ch == '0') {
         char dot = '.';
         addch(dot);
@@ -715,8 +750,8 @@ void player_choice(int ch) {
     } else if(g.copy_board[g.y][g.x] == 0) {        
         addch(ch);        
         show_cursor(); 
-        g.board[g.y][g.x] = ch - '0';
-    } 
+        g.board[g.y][g.x] = value;
+    }       
 
 }
 
@@ -785,7 +820,7 @@ int solveSudoku(int x, int y) {
 int sameColumn(int x, int y, int num) {
 
     for(int i = 0; i < 9; i++) {
-        if(g.solved_board[x][y] == num) {
+        if(g.solved_board[x][i] == num) {
             return 1;
         }
     }
@@ -860,14 +895,21 @@ int winCheck(void) {
 
 void congratulations(WINDOW *winWindow) {
 
-    refresh();
-
     box(winWindow, 0, 0);   
 
-    mvwprintw(winWindow, 1, 3, "CONGRATULATIONS, YOU WON!");  
-    mvwprintw(winWindow, 2, 5, "Press 'N', 'R' or 'Q'");
-    wrefresh(winWindow);
-   
+    if (has_colors()) {
+        init_pair(1, COLOR_GREEN, COLOR_BLACK);                
+        wattron(winWindow, COLOR_PAIR(1));
+    }    
+    mvwprintw(winWindow, 1, 3, "CONGRATULATIONS, YOU WON!"); 
+    if (has_colors()) {                       
+        wattroff(winWindow, COLOR_PAIR(1));
+    }    
+
+    mvwprintw(winWindow, 2, 5, "Press 'N', 'R' or 'Q'");      
+    wrefresh(winWindow);    
+      
     curs_set(0);
 
 }
+
