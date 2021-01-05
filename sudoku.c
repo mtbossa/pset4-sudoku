@@ -5,9 +5,10 @@
  * Pset 4
  *
  * Implements the game of Sudoku.
- ***************************************************************************/
+***************************************************************************/
 
 #include "includes/sudoku.h"
+#include "includes/puzzle.h"
 
 #include <ctype.h>
 #include <ncurses.h>
@@ -70,11 +71,6 @@ bool startup(void);
 void player_move(int ch);
 void player_choice(int ch, WINDOW *win);
 
-int solveSudoku(int x, int y);
-int sameColumn(int x, int y, int num);
-int sameSquare(int x, int y, int num);
-int sameRow(int x, int y, int num);
-
 int mySameColumn(int x, int y, int num);
 int mySameSquare(int x, int y, int num);
 int mySameRow(int x, int y, int num);
@@ -84,7 +80,7 @@ void congratulations(WINDOW *win);
 
 /*
  * Main driver for the game.
- */
+*/
 
 int main(int argc, char *argv[]) {
     // define usage
@@ -296,7 +292,7 @@ int main(int argc, char *argv[]) {
 
 /*
  * Draw's the game's board.
- */
+*/
 
 void draw_grid(void) {
     // get window's dimensions
@@ -335,7 +331,7 @@ void draw_grid(void) {
 
 /*
  * Draws game's borders.
- */
+*/
 
 void draw_borders(void) {
     // get window's dimensions
@@ -376,7 +372,7 @@ void draw_borders(void) {
 /*
  * Draws game's logo.  Must be called after draw_grid has been
  * called at least once.
- */
+*/
 
 void draw_logo(void) {
     // determine top-left coordinates of logo
@@ -411,7 +407,7 @@ void draw_logo(void) {
 /*
  * Draw's game's numbers.  Must be called after draw_grid has been
  * called at least once.
- */
+*/
 
 void draw_numbers(void) {
     // iterate over board's numbers
@@ -428,7 +424,7 @@ void draw_numbers(void) {
 
 /*
  * Designed to handles signals (e.g., SIGWINCH).
- */
+*/
 
 void handle_signal(int signum) {
     // handle a change in the window (i.e., a resizing)
@@ -442,7 +438,7 @@ void handle_signal(int signum) {
 
 /*
  * Hides banner.
- */
+*/
 
 void hide_banner(void) {
     // get window's dimensions
@@ -458,7 +454,7 @@ void hide_banner(void) {
 
 /*
  * Loads current board from disk, returning true iff successful.
- */
+*/
 
 bool load_board(void) {
     // open file with boards of specified level
@@ -498,7 +494,7 @@ bool load_board(void) {
 
 /*
  * Logs input and board's state to log.txt to facilitate automated tests.
- */
+*/
 
 void log_move(int ch) {
     // open log
@@ -524,7 +520,7 @@ void log_move(int ch) {
 
 /*
  * (Re)draws everything on the screen.
- */
+*/
 
 void redraw_all(void) {
     // reset ncurses
@@ -547,7 +543,7 @@ void redraw_all(void) {
 
 /*
  * (Re)starts current game, returning true iff succesful.
- */
+*/
 
 bool restart_game(void) {
     // reload current game
@@ -574,7 +570,7 @@ bool restart_game(void) {
     // solves this level board and place it into g.solved_board
     int x = 0;
     int y = 0;
-    solveSudoku(x, y);
+    solveSudoku(x, y, g.solved_board);
 
     // creates copy of the game level board that won't be changed, for later verification 
     for(int i = 0; i < 9; i++) {
@@ -597,7 +593,7 @@ bool restart_game(void) {
 
 /*
  * Shows cursor at (g.y, g.x).
- */
+*/
 
 void show_cursor(void) {
     // restore cursor's location
@@ -608,7 +604,7 @@ void show_cursor(void) {
 /*
  * Shows a banner.  Must be called after show_grid has been
  * called at least once.
- */
+*/
 
 void show_banner(char *b) {
     // enable color if possible
@@ -628,7 +624,7 @@ void show_banner(char *b) {
 
 /*
  * Shuts down ncurses.
- */
+*/
 
 void shutdown(void) {
     endwin();
@@ -637,7 +633,7 @@ void shutdown(void) {
 
 /*
  * Starts up ncurses.  Returns true iff successful.
- */
+*/
 
 bool startup(void) {
     // initialize ncurses
@@ -690,7 +686,7 @@ bool startup(void) {
 
 /*
  * Player move - arrows
- */
+*/
 
 void player_move(int ch) {
 
@@ -747,7 +743,7 @@ void player_move(int ch) {
 
 /*
  * Player choice - enters here just if '1' to '9' or '.' is pressed, than adds the character to the cursor position
- */
+*/
 
 void player_choice(int ch, WINDOW *win) {
     int value = ch - '0';
@@ -789,126 +785,10 @@ void player_choice(int ch, WINDOW *win) {
 
 }
 
-/*
- * Algorithm to solve the board
- */
-
-int solveSudoku(int x, int y) {
-
-    int num = 1;
-    int tx = 0;
-    int ty = 0;
-
-    if(g.solved_board[x][y] != 0) {
-
-        if(x == 8 && y == 8) {
-            return 1;
-        }
-
-        if(x < 8) {
-            x++;
-        } else {
-            x = 0;
-            y++;
-        }
-
-        if(solveSudoku(x, y)) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    if(g.solved_board[x][y] == 0) {
-        while(num < 10) {
-             if(!sameSquare(x, y, num) && !sameRow(x, y, num) && !sameColumn(x, y, num)) {            
-                g.solved_board[x][y] = num;
-                if(x == 8 && y == 8) {
-                    return 1;
-                }
-
-                if(x < 8) {
-                    tx = x + 1;
-                } else {
-                    tx = 0;
-                    ty = y + 1;
-                }
-
-                if(solveSudoku(tx, ty)) {
-                    return 1;
-                }                
-            }   
-            num++;         
-        }
-        g.solved_board[x][y] = 0;
-        return 0;
-    }
-    return 0;
-}
-
-/*
- * Will return 1 (true) if the number we're passing already exists in the same column
- */
-
-int sameColumn(int x, int y, int num) {
-
-    for(int i = 0; i < 9; i++) {
-        if(g.solved_board[x][i] == num) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-/*
- * Will return 1 (true) if the number we're passing already exists in the same row
- */
-
-int sameRow(int x, int y, int num) {
-
-    for(int i = 0; i < 9; i++) {
-        if(g.solved_board[i][y] == num) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-/*
- * Will return 1 (true) if the number we're passing already exists in the same square
- */
-
-int sameSquare(int x, int y, int num) {
-
-    if(x < 3) {
-        x = 0;
-    } else if(x < 6) {
-        x = 3;
-    } else {
-        x = 6;
-    }
-
-    if(y < 3) {
-        y = 0;
-    } else if(y < 6) {
-        y = 3;
-    } else {
-        y = 6;
-    }
-
-    for(int i = x; i < x + 3; i++) {
-        for(int j = y; j < y + 3; j++) {
-            if(g.solved_board[i][j] == num) {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
 
 /*
  * Checks current g.board with g.solved_board and return 1 if solved and 0 if not
- */
+*/
 
 int winCheck(void) {
 
@@ -924,7 +804,7 @@ int winCheck(void) {
 
 /*
  * Congratulations message if win
- */
+*/
 
 void congratulations(WINDOW *winWindow) {
 
@@ -948,7 +828,7 @@ void congratulations(WINDOW *winWindow) {
 
 /*
  * Will return 1 (true) if the number we're passing already exists in the same column
- */
+*/
 
 int mySameColumn(int x, int y, int num) {
 
@@ -963,7 +843,7 @@ int mySameColumn(int x, int y, int num) {
 
 /*
  * Will return 1 (true) if the number we're passing already exists in the same row
- */
+*/
 
 int mySameRow(int x, int y, int num) {
 
@@ -978,7 +858,7 @@ int mySameRow(int x, int y, int num) {
 
 /*
  * Will return 1 (true) if the number we're passing already exists in the same square
- */
+*/
 
 int mySameSquare(int x, int y, int num) {
 

@@ -8,7 +8,7 @@
  ***************************************************************************/
 
 // game's author
-#define AUTHOR "Mateus Riberio Bossa"
+#define AUTHOR "Mateus Ribeiro Bossa"
 
 // game's title
 #define TITLE "Sudoku CC50"
