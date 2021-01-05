@@ -828,7 +828,7 @@ int solveSudoku(int x, int y) {
                 }
 
                 if(x < 8) {
-                    tx++;
+                    tx = x + 1;
                 } else {
                     tx = 0;
                     ty = y + 1;
