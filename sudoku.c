@@ -801,7 +801,7 @@ int solveSudoku(int x, int y) {
 
     if(g.solved_board[x][y] != 0) {
 
-        if (x == 8 && y == 8) {
+        if(x == 8 && y == 8) {
             return 1;
         }
 
@@ -811,6 +811,7 @@ int solveSudoku(int x, int y) {
             x = 0;
             y++;
         }
+
         if(solveSudoku(x, y)) {
             return 1;
         } else {
@@ -820,29 +821,27 @@ int solveSudoku(int x, int y) {
 
     if(g.solved_board[x][y] == 0) {
         while(num < 10) {
-            if(!sameSquare(x, y, num) && !sameRow(x, y, num) && !sameSquare(x, y, num)) {            
+             if(!sameSquare(x, y, num) && !sameRow(x, y, num) && !sameColumn(x, y, num)) {            
                 g.solved_board[x][y] = num;
-                if (x == 8 && y == 8) {
+                if(x == 8 && y == 8) {
                     return 1;
                 }
 
                 if(x < 8) {
-                    tx = x + 1;
+                    tx++;
                 } else {
-                    if (y < 8) {
-                        tx = 0;
-                        ty = y + 1;
-                    }
+                    tx = 0;
+                    ty = y + 1;
                 }
 
                 if(solveSudoku(tx, ty)) {
                     return 1;
                 }                
-            }    
-            num++;
+            }   
+            num++;         
         }
         g.solved_board[x][y] = 0;
-        return 0;    
+        return 0;
     }
     return 0;
 }
@@ -902,7 +901,7 @@ int sameSquare(int x, int y, int num) {
             if(g.solved_board[i][j] == num) {
                 return 1;
             }
-        }        
+        }
     }
     return 0;
 }
